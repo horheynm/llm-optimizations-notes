@@ -1,7 +1,4 @@
 """
-
-# ENCODER OPTIMIZATION -> Prefill
-
 In large language model inference, input tokens are very crucially processed efficiently to reduce latency. 
 When a prompt is received, first the prefill phase where all input tokens are processed simultaneously, is conducted.
 This step utilizes self-attention such that every token can interact with every other token once in parallel.
