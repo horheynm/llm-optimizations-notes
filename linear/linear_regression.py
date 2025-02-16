@@ -44,7 +44,7 @@ class LinearRegressionModel(torch.nn.Module):
 
     def train(self, data, labels, lr=0.01, epochs=1000):
         for epoch in range(epochs):
-            y_pred = self.forward(data)
+            y_pred = self(data)
             grad_m = self.compute_loss_m(data, labels, y_pred)
             grad_b = self.compute_loss_b(labels, y_pred)
 
