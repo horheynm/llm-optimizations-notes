@@ -1,3 +1,11 @@
+"""
+hooks:
+
+pro: fast testing, no code modification
+cons: runtime overhead, hard to manage for large models, defined implicitly at runtime
+
+"""
+
 import torch
 import torch.nn as nn
 import torch.optim as optim

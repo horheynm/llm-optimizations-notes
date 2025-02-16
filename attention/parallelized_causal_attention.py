@@ -1,5 +1,5 @@
 """
-In large language model inference, input tokens are very crucially processed efficiently to reduce latency. 
+In large language model inference, input tokens are very crucially processed efficiently to reduce latency.
 When a prompt is received, first the prefill phase where all input tokens are processed simultaneously, is conducted.
 This step utilizes self-attention such that every token can interact with every other token once in parallel.
 Given that all input tokens are provided beforehand, this phase is highly optimized with matrix multiplications and thus much quicker than the decoding phase, where input tokens must be generated one at a time.
@@ -17,21 +17,21 @@ Why Does Parallel Encoding Work?
 * Batch processing uses matrix multiplications, making it significantly faster.
 
 
-The causal mask ensures that each token in a sequence can only attend to itself and the tokens that come before it, effectively blocking attention to future tokens. 
-This is crucial in autoregressive or causal language modeling scenarios, where each newly generated token must not “peek” at tokens that haven’t been generated yet. 
-By adding a -∞ penalty (or very large negative number) to the attention logits for any positions beyond the current token’s index, 
+The causal mask ensures that each token in a sequence can only attend to itself and the tokens that come before it, effectively blocking attention to future tokens.
+This is crucial in autoregressive or causal language modeling scenarios, where each newly generated token must not “peek” at tokens that haven’t been generated yet.
+By adding a -∞ penalty (or very large negative number) to the attention logits for any positions beyond the current token’s index,
  the softmax turns those positions into zeros—meaning they can’t contribute to the output.
 
 
 """
-
 
 import torch
 import torch.nn as nn
 import math
 
 SEED = 42
-torch.manual_seed(SEED)  
+torch.manual_seed(SEED)
+
 
 class BaseEncoder(nn.Module):
     def __init__(self, d_model):
@@ -49,7 +49,7 @@ class BaseEncoder(nn.Module):
         mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1).bool()
 
         # 2) Convert to float and fill masked positions with -inf
-        mask = mask.float().masked_fill_(mask, float('-inf'))
+        mask = mask.float().masked_fill_(mask, float("-inf"))
         return mask
 
 
@@ -58,19 +58,20 @@ class EncodeSequential(BaseEncoder):
     Causal attention implemented sequentially (i.e., token by token).
     Each token t can only see x[:, :t+1, :].
     """
+
     def __init__(self, d_model, seq_len):
         super().__init__(d_model)
         self.seq_len = seq_len
 
     def forward(self, x):
         """
-        For each time-step t in [0..seq_len-1], 
+        For each time-step t in [0..seq_len-1],
         - Construct Q from x[:, t].
         - Construct K, V from x[:, :t+1].
         - Compute attention over t+1 positions.
         """
         batch_size, seq_len, d_model = x.shape
-        
+
         outputs = torch.zeros(batch_size, seq_len, d_model, device=x.device)
 
         for t in range(seq_len):
@@ -80,13 +81,11 @@ class EncodeSequential(BaseEncoder):
             q = q.unsqueeze(1)
 
             # K, V: only up to t-th position => (batch_size, t+1, d_model)
-            k = self.W_k(x[:, :t+1, :])
-            v = self.W_v(x[:, :t+1, :])
+            k = self.W_k(x[:, : t + 1, :])
+            v = self.W_v(x[:, : t + 1, :])
 
             # attention_scores shape => (batch_size, 1, t+1)
-            attention_scores = torch.bmm(
-                q, k.transpose(1, 2)
-            ) / math.sqrt(self.d_model)
+            attention_scores = torch.bmm(q, k.transpose(1, 2)) / math.sqrt(self.d_model)
 
             # Softmax over the last dimension => (t+1)
             attention_probs = torch.softmax(attention_scores, dim=-1)
@@ -105,6 +104,7 @@ class EncodeParallel(BaseEncoder):
     Causal attention in parallel using a lower-triangular mask.
     Each token sees only up to its own position within a single forward pass.
     """
+
     def __init__(self, d_model):
         super().__init__(d_model)
 
@@ -124,7 +124,7 @@ class EncodeParallel(BaseEncoder):
 
         # Build a causal mask of shape (seq_len, seq_len) and broadcast to (batch_size, seq_len, seq_len).
         mask = self._causal_mask(seq_len).to(x.device)  # (seq_len, seq_len)
-        
+
         # Expand for batch dimension if needed: (1, seq_len, seq_len) => broadcast to (batch_size, seq_len, seq_len)
         attention_scores = attention_scores + mask
 
@@ -137,9 +137,8 @@ class EncodeParallel(BaseEncoder):
         return attended_values
 
 
-
 if __name__ == "__main__":
-    
+
     batch_size, seq_len, d_model = 2, 4, 8
     x = torch.randn(batch_size, seq_len, d_model)
 

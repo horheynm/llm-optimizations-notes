@@ -1,19 +1,19 @@
 import torch
 import matplotlib.pyplot as plt
 
+
 class LinearRegressionModel(torch.nn.Module):
-    
     """
     1. Choose model                         -> Linear regression   -> y = mx + b
     2. Choose loss criteria                 -> MSE                 -> 1 / n * (y - y_hat) ^ 2
-    3. Choose params w* to minimize loss    -> m and b             -> gradients to min loss (w in argmin_w L(w) -> m and b). d(MSE)/dm, d(MSE)/db 
-    
+    3. Choose params w* to minimize loss    -> m and b             -> gradients to min loss (w in argmin_w L(w) -> m and b). d(MSE)/dm, d(MSE)/db
+
     Define parameters
     grad_m = grad_m - d(MSE) / dm
     grad_b = grad_b - d(MSE) / db
 
     Chain rule with respect to m:
-    1 / n * (y - (mx + b))^2 
+    1 / n * (y - (mx + b))^2
         m -> mx + b -> -1/n * u^2
         1 -> x -> -2/n
         combine: 1 * x * -2/n = -2x/n
@@ -25,9 +25,9 @@ class LinearRegressionModel(torch.nn.Module):
 
     def __init__(self, n_features: int):
         super().__init__()
-        
-        self.weight = torch.nn.Parameter(torch.randn(n_features, 1))   
-        self.bias = torch.nn.Parameter(torch.randn(1))    
+
+        self.weight = torch.nn.Parameter(torch.randn(n_features, 1))
+        self.bias = torch.nn.Parameter(torch.randn(1))
 
     def forward(self, x: torch.Tensor):
         return x @ self.weight + self.bias
@@ -60,28 +60,31 @@ class LinearRegressionModel(torch.nn.Module):
         with torch.no_grad():
             return self.forward(x)
 
+
 SEED = 42
 torch.manual_seed(SEED)
 
-n_features = 1 
+n_features = 1
 n_samples = 100
-X = 2 * torch.rand(n_samples, n_features)  
+X = 2 * torch.rand(n_samples, n_features)
 
-true_weights = torch.rand(n_features, 1) * 5  
+true_weights = torch.rand(n_features, 1) * 5
 true_bias = 4.0
-noise =  torch.randn(100, 1)  
+noise = torch.randn(100, 1)
 y = X @ true_weights + true_bias + noise
 
 model = LinearRegressionModel(n_features)
 model.train(X, y, lr=0.01, epochs=1_000)
 
 print("Learned parameters (weights and bias):")
-print(f"True weight: {true_weights.numpy().ravel()}, Weight: {model.weight.data.numpy().ravel()}")
+print(
+    f"True weight: {true_weights.numpy().ravel()}, Weight: {model.weight.data.numpy().ravel()}"
+)
 print(f"True bias: {true_bias}, Bias: {model.bias.data.numpy()}")
 
 
 if n_features == 1:
-    X_line = torch.linspace(0, 2, 100).unsqueeze(1)  
+    X_line = torch.linspace(0, 2, 100).unsqueeze(1)
     y_line = model.predict(X_line)
 
     plt.scatter(X.numpy(), y.numpy(), color="blue", label="Data")
@@ -90,4 +93,3 @@ if n_features == 1:
     plt.ylabel("y")
     plt.legend()
     plt.show()
-
