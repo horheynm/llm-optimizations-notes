@@ -24,9 +24,8 @@ with torch.no_grad():
 
 # True, none are part of the computational graph
 print(
-    "Output the same with grad vs no_grad?: ",
-    torch.equal(out, out_no_grad)
-) # yes, has no computational graph params
+    "Output the same with grad vs no_grad?: ", torch.equal(out, out_no_grad)
+)  # yes, has no computational graph params
 
 
 ###### Backprop vs no backprop
@@ -59,7 +58,7 @@ def train_step(model, optimizer, loss_fn, x, target):
     loss = loss_fn(output, target)  # loss computation
     loss.backward()  # gradient computation
     optimizer.step()  # weight update
-    
+
     # get output after forward call of the updated weights outside here
     return loss.item()
 
@@ -99,22 +98,20 @@ loss_value_no_grad, out_no_grad = eval_step(
 )
 
 # get output after weight update
-out = model(x) 
+out = model(x)
 
 print(f"Loss (with gradients): {loss_value:.4f}")
 print(f"Loss (without gradients): {loss_value_no_grad:.4f}")
-print(
-    f"loss equal after one step?: ",
-    (loss_value == loss_value_no_grad)
-)  # True
-print(
-    f"output equal after one step?: ",
-    torch.equal(out, out_no_grad)
-)  # False
+print(f"loss equal after one step?: ", (loss_value == loss_value_no_grad))  # True
+print(f"output equal after one step?: ", torch.equal(out, out_no_grad))  # False
 
 for step in range(5):
-    loss_value = train_step(model, optimizer, loss_fn, x, target)  # model update weights
-    loss_value_no_grad, _ = eval_step(model_no_grad, loss_fn, x, target)  # model_no_grad no update weights
+    loss_value = train_step(
+        model, optimizer, loss_fn, x, target
+    )  # model update weights
+    loss_value_no_grad, _ = eval_step(
+        model_no_grad, loss_fn, x, target
+    )  # model_no_grad no update weights
 
     # already trained once, start with 1
     print(f"training {step+2}: {loss_value:.4f}, eval_mode: {loss_value_no_grad:.4f}")
