@@ -10,7 +10,7 @@ MAX_TIME_WAIT = 0.05
 start_time = time.time()  
 
 
-class ContinuousBatcher:
+class DynamicBatcher:
     """Continous batching scheduler"""
     
     def __init__(self, model_name="distilgpt2", max_batch_size=4, max_seq_len=64, max_time=MAX_TIME_WAIT):
@@ -169,7 +169,7 @@ def load_prompts_from_file(filename="prompts.txt"):
 
 
 if __name__ == "__main__":
-    batcher = ContinuousBatcher(
+    batcher = DynamicBatcher(
         # model_name="EleutherAI/gpt-neo-1.3B", # just make sure dynamic batching works, generation coherence dont matter
         max_batch_size=4,
         max_seq_len=64,
