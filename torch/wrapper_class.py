@@ -122,6 +122,15 @@ print(
     "After wrapping:", wrapped_model.model.model.layers[0].self_attn.q_proj.weight.shape
 )
 
+original_model = AutoModelForCausalLM.from_pretrained(
+    stub,
+    device_map="auto",
+    torch_dtype="auto",
+)
+
+print("original weight: ", original_model.model.layers[0].self_attn.q_proj.weight)
+print("wrapped weight: ", wrapped_model.model.model.layers[0].self_attn.q_proj.weight)
+
 """
 tensor([[-0.0015, -0.0024, -0.0074,  ...,  0.0055, -0.0011, -0.0137],
         [ 0.0027,  0.0060, -0.0178,  ...,  0.0008,  0.0006,  0.0105],
@@ -142,15 +151,6 @@ tensor([[-0.0000, -0.0000, -0.0125,  ...,  0.0000, -0.0000, -0.0125],
        device='cuda:0', dtype=torch.bfloat16, requires_grad=True)
 
 """
-
-original_model = AutoModelForCausalLM.from_pretrained(
-    stub,
-    device_map="auto",
-    torch_dtype="auto",
-)
-
-print("original weight: ", original_model.model.layers[0].self_attn.q_proj.weight)
-print("wrapped weight: ", wrapped_model.model.model.layers[0].self_attn.q_proj.weight)
 
 input_ids = tokenizer("Hello my name is", return_tensors="pt").input_ids.to("cuda")
 
