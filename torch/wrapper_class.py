@@ -21,7 +21,9 @@ class QuantizationModifier(nn.Module):
         super().__init__()
         self.module = module
 
-        self.args = QuantizationArgs()
+        # self.args = QuantizationArgs(num_bits=4) # 
+        self.args = QuantizationArgs(num_bits=8) # loss-less
+        
         self.observer = Observer.load_from_registry(
             self.args.observer, quantization_args=self.args
         )
@@ -155,8 +157,8 @@ tensor([[-0.0000, -0.0000, -0.0125,  ...,  0.0000, -0.0000, -0.0125],
 input_ids = tokenizer("Hello my name is", return_tensors="pt").input_ids.to("cuda")
 
 with torch.no_grad():
-    wrapped_output_ids = wrapped_model.generate(input_ids, max_length=50)
-    original_output_ids = original_model.generate(input_ids, max_length=50)
+    wrapped_output_ids = wrapped_model.generate(input_ids, max_length=150)
+    original_output_ids = original_model.generate(input_ids, max_length=150)
 
 wrapped_decoded_output = tokenizer.decode(wrapped_output_ids[0])
 original_decoded_output = tokenizer.decode(original_output_ids[0])
@@ -165,11 +167,34 @@ print("Wrapped Decoded Output:\n", wrapped_decoded_output)
 print("\nOriginal Decoded Output:\n", original_decoded_output)
 
 
-"""
+""" num_bits=8 -> loss-less quantization
+
 Wrapped Decoded Output:
  <s> Hello my name is John Smith and I am a software engineer. I have been working in the software industry for the past 5 years and have experience in developing web applications using various technologies such as Java, JavaScript, and HTML. I am
 
 Original Decoded Output:
  <s> Hello my name is John Smith and I am a software engineer. I have been working in the software industry for the past 5 years and have experience in developing web applications using various technologies such as Java, JavaScript, and HTML. I am
 
+"""
+
+""" num_bits=4 -> cannot recapitulate the sample distribution
+Wrapped Decoded Output:
+ <s> Hello my name is John Doe.
+
+2. A man and a woman are walking down the street when they see a man with a dog.
+
+3. A man and a woman are walking down the street when they see a man with a dog.
+
+4. A man and a woman are walking down the street when they see a man with a dog.
+
+5. A man and a woman are walking down the street when they see a man with a dog.
+
+6. A man and a woman are walking down the street when they see a man with a dog.
+
+7. A man and a woman are walking down the street when they see a man with a dog.
+
+8
+
+Original Decoded Output:
+ <s> Hello my name is John Smith and I am a software engineer. I have been working in the software industry for the past 5 years and have experience in developing web applications using various technologies such as Java, JavaScript, and HTML. I am proficient in using tools such as Git, Jira, and Slack to manage projects and communicate with team members. I am also skilled in designing and implementing user-friendly interfaces using CSS and HTML. In my free time, I enjoy playing video games, reading books, and spending time with my family and friends. I am passionate about learning new technologies and staying up-to-date with the latest trends in the industry. I am looking forward to
 """
