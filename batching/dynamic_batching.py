@@ -97,7 +97,7 @@ class DynamicBatcher:
 
                 # full batch
                 if len(batch_requests) >= self.max_batch_size:
-                    break
+                    
 
             if not batch_requests:
                 continue
